@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:campaign_id",
+ "creation": "2025-03-03 14:08:48.103738",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "campaign_id",
+  "campaign_name",
+  "status",
+  "campaign_type",
+  "creation_time",
+  "updation_time"
+ ],
+ "fields": [
+  {
+   "fieldname": "campaign_id",
+   "fieldtype": "Data",
+   "label": "Campaign ID",
+   "unique": 1
+  },
+  {
+   "fieldname": "campaign_name",
+   "fieldtype": "Data",
+   "label": "Campaign Name"
+  },
+  {
+   "description": "Campaign status (1: Draft, 2: Paused, 3: Completed)",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\n1\n2\n3"
+  },
+  {
+   "default": "1",
+   "fieldname": "campaign_type",
+   "fieldtype": "Select",
+   "label": "Campaign Type",
+   "options": "\n1"
+  },
+  {
+   "fieldname": "creation_time",
+   "fieldtype": "Datetime",
+   "label": "Creation Time"
+  },
+  {
+   "fieldname": "updation_time",
+   "fieldtype": "Datetime",
+   "label": "Updation Time"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-04 10:11:10.183225",
+ "modified_by": "Administrator",
+ "module": "Verloop",
+ "name": "Verloop Campaigns",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

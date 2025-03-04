@@ -27,6 +27,7 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/verloop/css/verloop.css"
 app_include_js = "/assets/verloop/js/send_template.js"
+app_include_js = "/assets/verloop/js/verloop_campaign_list.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/verloop/css/verloop.css"

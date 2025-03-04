@@ -1,0 +1,123 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:template_id",
+ "creation": "2025-03-03 14:09:05.162649",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "template_id",
+  "template_name",
+  "language_code",
+  "message_content",
+  "column_break_vskb",
+  "whatsapp_template_id",
+  "creation_time",
+  "updation_time",
+  "block_type",
+  "parameters_table_section",
+  "parameters",
+  "action_parameter_table_section",
+  "parameter_value",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "template_id",
+   "fieldtype": "Data",
+   "label": "Template ID",
+   "unique": 1
+  },
+  {
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "label": "Template Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "language_code",
+   "fieldtype": "Data",
+   "label": "Language Code"
+  },
+  {
+   "fieldname": "message_content",
+   "fieldtype": "Small Text",
+   "label": "Message Content"
+  },
+  {
+   "fieldname": "column_break_vskb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "whatsapp_template_id",
+   "fieldtype": "Data",
+   "label": "Whatsapp Template ID"
+  },
+  {
+   "fieldname": "creation_time",
+   "fieldtype": "Datetime",
+   "label": "Creation Time"
+  },
+  {
+   "fieldname": "updation_time",
+   "fieldtype": "Datetime",
+   "label": "Updation Time"
+  },
+  {
+   "fieldname": "block_type",
+   "fieldtype": "Data",
+   "label": "Block Type"
+  },
+  {
+   "fieldname": "parameters_table_section",
+   "fieldtype": "Section Break",
+   "label": "Parameters Table"
+  },
+  {
+   "fieldname": "parameters",
+   "fieldtype": "Table",
+   "label": "Parameters",
+   "options": "Verloop Parameters Table"
+  },
+  {
+   "fieldname": "action_parameter_table_section",
+   "fieldtype": "Section Break",
+   "label": "Action Parameter Table"
+  },
+  {
+   "fieldname": "parameter_value",
+   "fieldtype": "Data",
+   "label": "Parameter Value"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-04 10:11:16.690835",
+ "modified_by": "Administrator",
+ "module": "Verloop",
+ "name": "Verloop Templates",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
