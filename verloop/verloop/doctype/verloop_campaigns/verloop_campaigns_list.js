@@ -1,5 +1,6 @@
 frappe.listview_settings["Verloop Campaigns"] = {
     onload: function(listview) {
+        console.log("Adding button to fetch campaigns");
         listview.page.add_inner_button("Fetch Campaigns", function() {
 
             frappe.call({
