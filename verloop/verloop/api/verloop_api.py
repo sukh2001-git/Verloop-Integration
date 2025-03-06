@@ -6,72 +6,530 @@ from frappe import _
 import http.client
 import json, re
 import string
+import datetime
 
 @frappe.whitelist()
+def enqueue_verloop_campaigns():
+
+    frappe.enqueue(
+        method=get_verloop_campaigns,
+        queue='long',
+        timeout=3600, 
+        job_name='Sync Verloop Campaigns'
+    )
+    
+    return [True, "Campaign sync job has been queued. Please check the Frappe Error Log for progress."]
+
+
 def get_verloop_campaigns():
     try:
-        settings = frappe.get_all("Verloop Settings")
-        if not settings:
-            return [False, "Verloop Settings not found"]
-            
-        settings_doc = frappe.get_doc("Verloop Settings", settings[0]["name"])
+        if not frappe.db.exists("DocType", "Verloop Settings"):
+            frappe.log_error("Verloop Settings doctype not found", "Verloop Campaign Sync")
+            return
+
+        settings_doc = frappe.get_doc("Verloop Settings")
         
-        # Get required fields from settings
         base_path = settings_doc.base_path
         client_id = settings_doc.client_id
         
-        if not base_path or not client_id:
+        if not base_path or not client_id:       
+            frappe.log_error("Verloop Settings not configured properly", "Verloop Campaign Sync")
+            return
+
+        auth_key = settings_doc.get_password("api_key")
+        
+        if not auth_key:
+            frappe.log_error("API Key not configured", "Verloop Campaign Sync")
+            return
+
+        # Constants
+        campaign_type = getattr(settings_doc, "campaign_type", 1)
+        limit = 100  
+        
+        # Tracking variables
+        total_campaigns_imported = 0
+        total_campaigns_skipped = 0
+        count = 0
+        total_count = None
+
+        while True:
+            # Calculate offset
+            offset = count * limit
+
+            payload = json.dumps({
+                "ListOption": {
+                    "limit": limit,
+                    "offset": offset
+                },
+                "Type": campaign_type
+            })
+
+            headers = {
+                'accept': "application/json",
+                'Authorization': auth_key
+            }
+            
+            url = f"https://{client_id}.verloop.io{base_path}/outreach/list-campaigns"
+            parsed_url = urlparse(url)
+            hostname = parsed_url.netloc
+            endpoint = parsed_url.path
+
+            conn = http.client.HTTPSConnection(hostname)
+            conn.request("POST", endpoint, body=payload, headers=headers)
+            response = conn.getresponse()
+
+            data = response.read()
+            response_data = json.loads(data.decode("utf-8"))
+
+            if total_count is None:
+                total_count = response_data.get("Count", 0)
+                frappe.log_error(f"Total Campaigns to Sync: {total_count}", "Verloop Campaign Sync")
+
+            if not response_data.get("Campaigns"):
+                break
+
+            result = create_campaign_records(response_data.get("Campaigns", []))
+            
+            # Update tracking
+            if result[0]:  
+                # Extract numbers from result message
+                import re
+                imported = int(re.search(r'Imported (\d+)', result[1]).group(1))
+                skipped = int(re.search(r'skipped (\d+)', result[1]).group(1))
+                
+                total_campaigns_imported += imported
+                total_campaigns_skipped += skipped
+
+            # Increment count
+            count += 1
+
+            # Optional: Break if we've processed all campaigns
+            if (count * limit) >= total_count:
+                break
+
+        frappe.log_error(
+            f"Verloop Campaign Sync Complete. "
+            f"Total Campaigns: {total_count}, "
+            f"Imported: {total_campaigns_imported}, "
+            f"Skipped: {total_campaigns_skipped}",
+            "Verloop Campaign Sync"
+        )
+
+    except Exception as e:
+        frappe.log_error(f"Verloop Campaign Sync Error: {str(e)}", "Verloop Campaign Sync")
+    
+
+def create_campaign_records(filtered_campaigns):
+    try:
+        if not filtered_campaigns:
+            return [True, "No new campaigns to import"]
+
+        created_count = 0
+        skipped_count = 0
+        error_campaigns = []
+
+        for campaign in filtered_campaigns:
+            meta = campaign.get("Meta", {})
+            campaign_id = meta.get("Id")
+
+            if not campaign_id:
+                error_campaigns.append({"name": campaign.get("Name", "Unknown"), "error": "Missing campaign ID"})
+                continue  # Skip campaigns without an ID
+
+            # Check if the campaign already exists in the system
+            if frappe.db.exists("Verloop Campaigns", {"campaign_id": campaign_id}):
+                skipped_count += 1
+                continue  # Skip duplicate campaigns
+
+            # Extract additional campaign details
+            campaign_name = campaign.get("Name", "")
+            status = campaign.get("Status", "")
+            campaign_type = campaign.get("Type", "1")
+            template_id = campaign.get("TemplateID", "")
+
+            # Handle timestamps
+            created_at = meta.get("CreatedAt")
+            updated_at = meta.get("UpdatedAt")
+
+            # Create a new campaign record
+            new_campaign = frappe.get_doc({
+                "doctype": "Verloop Campaigns",
+                "campaign_id": campaign_id,  
+                "campaign_name": campaign_name,
+                "status": status,
+                "campaign_type": campaign_type,
+                "template_id": template_id
+            })
+            
+            if created_at:
+                try:
+                    new_campaign.creation_time = frappe.utils.get_datetime(
+                        datetime.datetime.fromtimestamp(created_at)
+                    )
+                except Exception as e:
+                    frappe.log_error(f"Creation time error: {str(e)}", "Verloop Campaign Import")
+            
+            if updated_at:
+                try:
+                    new_campaign.updation_time = frappe.utils.get_datetime(
+                        datetime.datetime.fromtimestamp(updated_at)
+                    )
+                except Exception as e:
+                    frappe.log_error(f"Updation time error: {str(e)}", "Verloop Campaign Import")
+
+
+            new_campaign.save(ignore_permissions=True)
+            created_count += 1
+
+        frappe.db.commit()  
+
+        # Prepare result message
+        result_message = f"Imported {created_count} campaigns, skipped {skipped_count}"
+        if error_campaigns:
+            result_message += f", errors in {len(error_campaigns)} campaigns"
+            frappe.log_error(f"Import Errors: {json.dumps(error_campaigns)}", "Verloop Campaign Import")
+
+        return [True, result_message]
+
+    except Exception as e:
+        frappe.log_error(f"Critical Error: {str(e)}", "Verloop Campaign Import")
+        return [False, f"Processing failed: {str(e)}"]
+    
+
+
+@frappe.whitelist()
+def update_verloop_campaign(campaign_id):
+    try:
+        if not frappe.db.exists("DocType", "Verloop Settings"):
+            return [False, "Verloop Settings doctype not found"]
+            
+        settings_doc = frappe.get_doc("Verloop Settings")
+        
+        base_path = settings_doc.base_path
+        client_id = settings_doc.client_id
+        
+        if not base_path or not client_id:       
             return [False, "Verloop Settings is not Configured Properly"]
             
-        # Get decrypted API key
-        auth_key = frappe.utils.password.get_decrypted_password(
-            "Verloop Settings",
-            settings[0]["name"],
-            "api_key"
-        )
+        auth_key = settings_doc.get_password("api_key")
         
         if not auth_key:
             return [False, "API Key not configured properly"]
+
+        payload = json.dumps({
+            "ID": campaign_id
+        })
         
-        campaign_type = getattr(settings_doc, "campaign_type", 1)
-        campaign_limit = getattr(settings_doc, "campaign_limit", 100)
-        campaign_offset = getattr(settings_doc, "campaign_offset", 0)
-            
         headers = {
             'accept': "application/json",
-            'Authorization': auth_key
+            'Authorization': auth_key,
+            'Content-Type': 'application/json'
         }
         
-        url = f"https://{client_id}.verloop.io{base_path}/outreach/list-campaigns"
-        
-        # Parse the URL for the connection
+        url = f"https://{client_id}.verloop.io{base_path}/outreach/get-campaign"
         parsed_url = urlparse(url)
         hostname = parsed_url.netloc
         endpoint = parsed_url.path
 
-        payload = json.dumps({
-            "ListOption": {
-                "limit": campaign_limit,
-                "offset": campaign_offset
-            },
-            "Type": campaign_type
-        })
-        
-        # Make the HTTPS request
         conn = http.client.HTTPSConnection(hostname)
         conn.request("POST", endpoint, body=payload, headers=headers)
         response = conn.getresponse()
 
         data = response.read()
         response_data = json.loads(data.decode("utf-8"))
-        
+        frappe.log_error("Campaign Update Response: ", response_data)
 
-        # if 'create_template_records' in globals():
-        result = create_template_records(response_data)
-        return result
-        # else:
-        #     return [True, response_data]
+        campaign = response_data.get("Campaign", {})
+        meta = campaign.get("Meta", {})
+
+        doc = frappe.get_doc("Verloop Campaigns", campaign_id)
+
+        doc.campaign_name = campaign.get("Name", doc.campaign_name)
+        doc.status = campaign.get("Status", doc.status)
+        doc.campaign_type = campaign.get("Type", doc.campaign_type)
+        doc.template_id = campaign.get("TemplateID", doc.template_id)
+   
+        if meta.get("CreatedAt"):
+            doc.creation_time = frappe.utils.get_datetime(
+                datetime.datetime.fromtimestamp(meta.get("CreatedAt"))
+            )
+        
+        if meta.get("UpdatedAt"):
+            doc.updation_time = frappe.utils.get_datetime(
+                datetime.datetime.fromtimestamp(meta.get("UpdatedAt"))
+            )
+       
+        doc.is_deleted = meta.get("IsDeleted", False)
+
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return [True, f"Campaign {campaign_id} updated successfully"]
             
     except Exception as e:
-        frappe.log_error(f"Verloop API Error: {str(e)}", "Verloop Campaign Fetch Error")
-        return [False, f"Error fetching Verloop campaigns: {str(e)}"]
+        frappe.log_error(f"Verloop Campaign Update Error: {str(e)}", "Verloop Campaign Update")
+        return [False, f"Error updating Verloop campaign: {str(e)}"]
+    
+
+@frappe.whitelist()
+def enqueue_verloop_templates():
+    frappe.enqueue(
+        method=fetch_all_verloop_templates,
+        queue='long',
+        timeout=3600, 
+        job_name='Sync Verloop Templates'
+    )
+    
+    return [True, "Template sync job has been queued. Please check the Frappe Error Log for progress."]
+
+def fetch_all_verloop_templates():
+    try:
+        if not frappe.db.exists("DocType", "Verloop Settings"):
+            frappe.log_error("Verloop Settings doctype not found", "Verloop Template Sync")
+            return
+
+        settings_doc = frappe.get_doc("Verloop Settings")
+
+        base_path = settings_doc.base_path
+        client_id = settings_doc.client_id
+        
+        if not base_path or not client_id:       
+            return [False, "Verloop Settings is not Configured Properly"]
+            
+        auth_key = settings_doc.get_password("api_key")
+        
+        if not auth_key:
+            return [False, "API Key not configured properly"]
+        
+        limit = 100  
+        
+        # Tracking variables
+        total_templates_imported = 0
+        total_templates_skipped = 0
+        count = 0
+        total_count = None
+
+        while True:
+            # Calculate offset
+            offset = count * limit
+
+            # Prepare request payload
+            payload = json.dumps({
+                "ListOption": {
+                    "limit": limit,
+                    "offset": offset
+                },
+                "Type": 1  
+            })
+
+            headers = {
+                'accept': "application/json",
+                'Authorization': auth_key
+            }
+            
+            url = f"https://{client_id}.verloop.io{base_path}/outreach/list-templates"
+            parsed_url = urlparse(url)
+            hostname = parsed_url.netloc
+            endpoint = parsed_url.path
+
+            conn = http.client.HTTPSConnection(hostname)
+            conn.request("POST", endpoint, body=payload, headers=headers)
+            response = conn.getresponse()   
+
+            data = response.read()
+            response_data = json.loads(data.decode("utf-8"))
+            frappe.log_error(f"response data", response_data)
+
+            result = create_template_records(response_data.get("Templates", []))
+            frappe.log_error((result), "result")
+            
+            # Update tracking
+            if result[0]: 
+                # Extract numbers from result message
+                imported = int(re.search(r'Imported (\d+)', result[1]).group(1))
+                skipped = int(re.search(r'skipped (\d+)', result[1]).group(1))
+                
+                total_templates_imported += imported
+                total_templates_skipped += skipped
+
+            count += 1
+
+            # Break conditions
+            if (count * limit) >= total_count:
+                break
+
+        frappe.log_error(
+            f"Verloop Template Sync Complete. "
+            f"Total Templates: {total_count}, "
+            f"Imported: {total_templates_imported}, "
+            f"Skipped: {total_templates_skipped}",
+            "Verloop Template Sync"
+        )
+
+    except Exception as e:
+        frappe.log_error(f"Verloop Template Sync Error: {str(e)}", "Verloop Template Sync")
+
+def create_template_records(filtered_templates):
+    try:
+        if not filtered_templates:
+            return [True, "No new templates to import"]
+
+        created_count = 0
+        skipped_count = 0
+        error_templates = []
+
+        for template in filtered_templates:
+            meta = template.get("Meta", {})
+            template_id = meta.get("Id")
+
+            if not template_id:
+                error_templates.append({"name": template.get("Name", "Unknown"), "error": "Missing template ID"})
+                continue
+
+            if frappe.db.exists("Verloop Templates", {"template_id": template_id}):
+                skipped_count += 1
+                continue
+
+            message_content = ""
+            block = template.get("Block", {}).get("BlockType", {}).get("MessageBlock", {})
+            leading_message = block.get("LeadingMessage", {}).get("MessageType", {})
+            
+            if "TextMessage" in leading_message:
+                message_content = leading_message["TextMessage"]
+
+            template_type = template.get("TemplateType", {}).get("WhatsAppTemplate", {})
+
+            new_template = frappe.get_doc({
+                "doctype": "Verloop Templates",
+                "template_id": template_id,
+                "template_name": template.get("Name", ""),
+                "language_code": template_type.get("LanguageCode", ""),
+                "message_content": message_content,
+                "whatsapp_template_id": template_type.get("TemplateID", ""),
+                "block_type": list(template.get("Block", {}).get("BlockType", {}).keys())[0] if template.get("Block", {}).get("BlockType") else "",
+            })
+
+            # Handle parameters
+            parameters = template.get("Parameters", [])
+            if parameters:
+                for param in parameters:
+                    new_template.append("parameters", {
+                        "parameter_value": param
+                    })
+
+            action_parameters = template.get("ActionParameters", [])
+            if action_parameters:
+                for action_param in action_parameters:
+                    new_template.append("action_parameter", {
+                        "action_parameter_value": action_param
+                    })
+
+            new_template.save(ignore_permissions=True)
+            created_count += 1
+
+            # Handle timestamps
+            if meta.get("CreatedAt"):
+                new_template.creation_time = frappe.utils.get_datetime(
+                    datetime.datetime.fromtimestamp(meta.get("CreatedAt"))
+                )
+            
+            if meta.get("UpdatedAt"):
+                new_template.updation_time = frappe.utils.get_datetime(
+                    datetime.datetime.fromtimestamp(meta.get("UpdatedAt"))
+                )
+            
+            new_template.save(ignore_permissions=True)
+
+        frappe.db.commit()
+
+        # Prepare result message
+        result_message = f"Imported {created_count} templates, skipped {skipped_count}"
+        if error_templates:
+            result_message += f", errors in {len(error_templates)} templates"
+        return [True, result_message]
+
+    except Exception as e:
+        frappe.log_error(f"Critical Error: {str(e)}", "Verloop Template Import")
+        return [False, f"Processing failed: {str(e)}"]
+    
+
+@frappe.whitelist()
+def update_verloop_template(template_id):
+    try:
+        if not frappe.db.exists("DocType", "Verloop Settings"):
+            return [False, "Verloop Settings doctype not found"]
+            
+        settings_doc = frappe.get_doc("Verloop Settings")
+        
+        base_path = settings_doc.base_path
+        client_id = settings_doc.client_id
+        
+        if not base_path or not client_id:       
+            return [False, "Verloop Settings is not Configured Properly"]
+            
+        auth_key = settings_doc.get_password("api_key")
+        
+        if not auth_key:
+            return [False, "API Key not configured properly"]
+        
+        payload = json.dumps({
+            "ID": template_id
+        })
+        
+        headers = {
+            'accept': "application/json",
+            'Authorization': auth_key,
+            'Content-Type': 'application/json'
+        }
+        
+        url = f"https://{client_id}.verloop.io{base_path}/outreach/get-template"
+        parsed_url = urlparse(url)
+        hostname = parsed_url.netloc
+        endpoint = parsed_url.path
+
+        conn = http.client.HTTPSConnection(hostname)
+        conn.request("POST", endpoint, body=payload, headers=headers)
+        response = conn.getresponse()
+
+        data = response.read()
+        response_data = json.loads(data.decode("utf-8"))
+        frappe.log_error("Campaign Update Response: ", response_data)
+
+        template_data = response_data.get("Template", {})
+        
+        doc = frappe.get_doc('Verloop Templates', template_id)
+        
+        doc.template_id = template_id
+        doc.template_name = template_data.get('Name', '')
+        doc.block_type = template_data.get('Block', {}).get('blockType', '')
+        
+        meta = template_data.get('Meta', {})
+        if meta.get("CreatedAt"):
+            doc.creation_time = frappe.utils.get_datetime(
+                datetime.datetime.fromtimestamp(meta.get("CreatedAt"))
+            )
+    
+        if meta.get("UpdatedAt"):
+            doc.updation_time = frappe.utils.get_datetime(
+                datetime.datetime.fromtimestamp(meta.get("UpdatedAt"))
+            )
+        
+        doc.parameters = []
+        doc.action_parameter = []
+        
+        for param in template_data.get('Parameters', []):
+            doc.append('parameters', {
+                'parameter_value': param
+            })
+        
+        for action_param in template_data.get('ActionParameters', []):
+            doc.append('action_parameter', {
+                'action_parameter_value': action_param
+            })
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        return [True, f"Template {template_id} updated successfully"]
+    
+    except Exception as e:
+        return [False, f"An error occurred: {str(e)}"]

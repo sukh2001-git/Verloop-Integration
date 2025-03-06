@@ -18,13 +18,14 @@
   "parameters_table_section",
   "parameters",
   "action_parameter_table_section",
-  "parameter_value",
-  "description"
+  "action_parameter"
  ],
  "fields": [
   {
    "fieldname": "template_id",
    "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_standard_filter": 1,
    "label": "Template ID",
    "unique": 1
   },
@@ -85,19 +86,15 @@
    "label": "Action Parameter Table"
   },
   {
-   "fieldname": "parameter_value",
-   "fieldtype": "Data",
-   "label": "Parameter Value"
-  },
-  {
-   "fieldname": "description",
-   "fieldtype": "Small Text",
-   "label": "Description"
+   "fieldname": "action_parameter",
+   "fieldtype": "Table",
+   "label": "Action Parameter",
+   "options": "Verloop Action Parameter"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-04 10:11:16.690835",
+ "modified": "2025-03-05 18:53:59.200957",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Templates",

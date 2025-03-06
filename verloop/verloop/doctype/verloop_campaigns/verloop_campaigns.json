@@ -6,8 +6,12 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_vixj",
+  "is_deleted",
+  "section_break_gnvx",
   "campaign_id",
   "campaign_name",
+  "template_id",
   "status",
   "campaign_type",
   "creation_time",
@@ -26,11 +30,9 @@
    "label": "Campaign Name"
   },
   {
-   "description": "Campaign status (1: Draft, 2: Paused, 3: Completed)",
    "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Status",
-   "options": "\n1\n2\n3"
+   "fieldtype": "Int",
+   "label": "Status"
   },
   {
    "default": "1",
@@ -48,11 +50,30 @@
    "fieldname": "updation_time",
    "fieldtype": "Datetime",
    "label": "Updation Time"
+  },
+  {
+   "fieldname": "template_id",
+   "fieldtype": "Data",
+   "label": "Template ID"
+  },
+  {
+   "fieldname": "section_break_vixj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_deleted",
+   "fieldtype": "Check",
+   "label": "Is Deleted"
+  },
+  {
+   "fieldname": "section_break_gnvx",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-04 10:11:10.183225",
+ "modified": "2025-03-05 11:33:42.249880",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Campaigns",

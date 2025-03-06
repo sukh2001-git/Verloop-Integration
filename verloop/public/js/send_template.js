@@ -2,48 +2,45 @@ frappe.provide("verloop.ui.components");
 
 verloop.ui.components.TemplateSender = class TemplateSender {
     constructor(opts) {
-        // Default options
         this.options = {
             doctype: null,        // Current doctype
             docname: null,        // Current document name
             button_label: __('Send Template'),
-            menu_location: "Actions", // Where to place in the menu
-            send_method: "frappe.email.doctype.email_template.email_template.send_template", // Server method
-            callback: null        // Optional callback after sending
+            menu_location: "Actions",
+            send_method: "frappe.email.doctype.email_template.email_template.send_template",
+            callback: null
         };
-        
-        // Override defaults with provided options
+
         Object.assign(this.options, opts || {});
-        
-        // Validate required options
+
         if (!this.options.doctype || !this.options.docname) {
             frappe.throw(__("Doctype and docname are required for Template Sender"));
         }
     }
-    
+
     // Add button to form
     add_button_to_form(frm) {
         console.log("Adding button to form");
         if (!frm.is_new()) {
             frm.page.add_menu_item(
                 this.options.button_label, 
-                () => this.open_dialog(),
+                () => this.open_dialog(frm),  // Pass `frm` here
                 this.options.menu_location
             );
         }
     }
-    
+
     // Open the dialog
-    open_dialog() {
+    open_dialog(frm) {  // Accept `frm` as a parameter
         let me = this;
         let d = new frappe.ui.Dialog({
             title: __("Send Template"),
             fields: [
                 {
                     label: __("To"),
-                    fieldname: "moblile_no",
+                    fieldname: "mobile_no",
                     fieldtype: "data",
-                    default: frm.doc.mobile_no,
+                    default: frm.doc.mobile_no,  // Now `frm` is available
                     reqd: 1
                 },
                 {
@@ -90,7 +87,7 @@ verloop.ui.components.TemplateSender = class TemplateSender {
                     args: {
                         doctype: me.options.doctype,
                         docname: me.options.docname,
-                        to_user: values.to_user,
+                        to_user: values.mobile_no,
                         template: values.template,
                         dynamic_params: values.dynamic_params
                     },
@@ -117,13 +114,11 @@ verloop.ui.components.TemplateSender = class TemplateSender {
 frappe.ui.setup_template_sender = function(frm, opts = {}) {
     opts.doctype = frm.doctype;
     opts.docname = frm.docname;
-    
-    // Create instance
+
     let template_sender = new verloop.ui.components.TemplateSender(opts);
-    
-    // Add button to form
+
     template_sender.add_button_to_form(frm);
-    
+
     return template_sender;
 };
 

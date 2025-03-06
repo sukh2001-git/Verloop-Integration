@@ -7,8 +7,11 @@
  "field_order": [
   "api_key",
   "client_id",
+  "campaign_offset",
   "column_break_himj",
-  "base_path"
+  "base_path",
+  "campaign_limit",
+  "campaign_type"
  ],
  "fields": [
   {
@@ -29,12 +32,29 @@
    "fieldname": "base_path",
    "fieldtype": "Data",
    "label": "Base Path"
+  },
+  {
+   "default": "0",
+   "fieldname": "campaign_offset",
+   "fieldtype": "Int",
+   "label": "Campaign Offset"
+  },
+  {
+   "fieldname": "campaign_limit",
+   "fieldtype": "Int",
+   "label": "Campaign Limit"
+  },
+  {
+   "default": "1",
+   "fieldname": "campaign_type",
+   "fieldtype": "Int",
+   "label": "Campaign Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-04 10:10:39.334925",
+ "modified": "2025-03-04 10:16:03.439608",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Settings",
