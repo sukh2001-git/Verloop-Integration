@@ -5,17 +5,49 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_uzm1"
+  "references_section",
+  "reference_dt",
+  "reference_name",
+  "column_break_rnqj",
+  "message_id_request",
+  "failure_reason"
  ],
  "fields": [
   {
-   "fieldname": "section_break_uzm1",
-   "fieldtype": "Section Break"
+   "fieldname": "references_section",
+   "fieldtype": "Section Break",
+   "label": "References"
+  },
+  {
+   "fieldname": "reference_dt",
+   "fieldtype": "Link",
+   "label": "Reference DT",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Name",
+   "options": "reference_dt"
+  },
+  {
+   "fieldname": "column_break_rnqj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "message_id_request",
+   "fieldtype": "Small Text",
+   "label": "Message ID Request"
+  },
+  {
+   "fieldname": "failure_reason",
+   "fieldtype": "Small Text",
+   "label": "Failure Reason"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-04 10:11:37.363605",
+ "modified": "2025-03-06 10:35:20.005736",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Logs",
