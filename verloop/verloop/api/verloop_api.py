@@ -12,7 +12,7 @@ import datetime
 def enqueue_verloop_campaigns():
 
     frappe.enqueue(
-        method=get_verloop_campaigns,
+        method='verloop.verloop.api.verloop_api.get_verloop_campaigns',
         queue='long',
         timeout=3600, 
         job_name='Sync Verloop Campaigns'
@@ -274,7 +274,7 @@ def update_verloop_campaign(campaign_id):
 @frappe.whitelist()
 def enqueue_verloop_templates():
     frappe.enqueue(
-        method=fetch_all_verloop_templates,
+        method='verloop.verloop.api.verloop_api.fetch_all_verloop_templates',
         queue='long',
         timeout=3600, 
         job_name='Sync Verloop Templates'
