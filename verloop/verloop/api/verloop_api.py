@@ -100,10 +100,8 @@ def get_verloop_campaigns():
                 total_campaigns_imported += imported
                 total_campaigns_skipped += skipped
 
-            # Increment count
             count += 1
 
-            # Optional: Break if we've processed all campaigns
             if (count * limit) >= total_count:
                 break
 
@@ -127,6 +125,15 @@ def create_campaign_records(filtered_campaigns):
         created_count = 0
         skipped_count = 0
         error_campaigns = []
+        updated_templates = 0
+        template_errors = 0
+
+        STATUS_MAPPING = {
+            "0": "UNKNOWN",
+            "1": "DRAFT",
+            "2": "PUBLISHED",
+            "3": "DISABLED"
+        }
 
         for campaign in filtered_campaigns:
             meta = campaign.get("Meta", {})
@@ -134,18 +141,35 @@ def create_campaign_records(filtered_campaigns):
 
             if not campaign_id:
                 error_campaigns.append({"name": campaign.get("Name", "Unknown"), "error": "Missing campaign ID"})
-                continue  # Skip campaigns without an ID
+                continue  
 
-            # Check if the campaign already exists in the system
             if frappe.db.exists("Verloop Campaigns", {"campaign_id": campaign_id}):
                 skipped_count += 1
-                continue  # Skip duplicate campaigns
+                continue  
 
-            # Extract additional campaign details
             campaign_name = campaign.get("Name", "")
-            status = campaign.get("Status", "")
+            # status = campaign.get("Status", "")
+
+            raw_status = str(campaign.get("Status", ""))
+            status = STATUS_MAPPING.get(raw_status, "")
+
             campaign_type = campaign.get("Type", "1")
             template_id = campaign.get("TemplateID", "")
+
+            #creating template record by id
+            if template_id:
+                try:
+                    template_result = update_verloop_template(template_id)
+                    if template_result[0]:
+                        updated_templates += 1
+                    else:
+                        frappe.log_error(f"Template update failed for ID {template_id}: {template_result[1]}", 
+                                       "Verloop Template Update")
+                        template_errors += 1
+                except Exception as e:
+                    frappe.log_error(f"Exception in template update for ID {template_id}: {str(e)}", 
+                                   "Verloop Template Update")
+                    template_errors += 1
 
             # Handle timestamps
             created_at = meta.get("CreatedAt")
@@ -168,6 +192,7 @@ def create_campaign_records(filtered_campaigns):
                     )
                 except Exception as e:
                     frappe.log_error(f"Creation time error: {str(e)}", "Verloop Campaign Import")
+                    pass
             
             if updated_at:
                 try:
@@ -176,11 +201,12 @@ def create_campaign_records(filtered_campaigns):
                     )
                 except Exception as e:
                     frappe.log_error(f"Updation time error: {str(e)}", "Verloop Campaign Import")
-
-
+                    pass
+                
             new_campaign.save(ignore_permissions=True)
             created_count += 1
 
+        frappe.log_error("Before inserting:", campaign.as_dict())
         frappe.db.commit()  
 
         # Prepare result message
@@ -202,6 +228,13 @@ def update_verloop_campaign(campaign_id):
     try:
         if not frappe.db.exists("DocType", "Verloop Settings"):
             return [False, "Verloop Settings doctype not found"]
+        
+        STATUS_MAPPING = {
+            "0": "UNKNOWN",
+            "1": "DRAFT",
+            "2": "PUBLISHED",
+            "3": "DISABLED"
+        }
             
         settings_doc = frappe.get_doc("Verloop Settings")
         
@@ -237,7 +270,6 @@ def update_verloop_campaign(campaign_id):
 
         data = response.read()
         response_data = json.loads(data.decode("utf-8"))
-        frappe.log_error("Campaign Update Response: ", response_data)
 
         campaign = response_data.get("Campaign", {})
         meta = campaign.get("Meta", {})
@@ -245,7 +277,12 @@ def update_verloop_campaign(campaign_id):
         doc = frappe.get_doc("Verloop Campaigns", campaign_id)
 
         doc.campaign_name = campaign.get("Name", doc.campaign_name)
-        doc.status = campaign.get("Status", doc.status)
+        
+        # doc.status = campaign.get("Status", doc.status)
+        response_status = str(campaign.get("Status", ""))
+        if response_status in STATUS_MAPPING:
+            doc.status = STATUS_MAPPING[response_status]
+
         doc.campaign_type = campaign.get("Type", doc.campaign_type)
         doc.template_id = campaign.get("TemplateID", doc.template_id)
    
@@ -267,7 +304,7 @@ def update_verloop_campaign(campaign_id):
         return [True, f"Campaign {campaign_id} updated successfully"]
             
     except Exception as e:
-        frappe.log_error(f"Verloop Campaign Update Error: {str(e)}", "Verloop Campaign Update")
+        # frappe.log_error(f"Verloop Campaign Update Error: {str(e)}", "Verloop Campaign Update")
         return [False, f"Error updating Verloop campaign: {str(e)}"]
     
 
@@ -379,6 +416,7 @@ def create_template_records(filtered_templates):
         error_templates = []
 
         for template in filtered_templates:
+
             meta = template.get("Meta", {})
             template_id = meta.get("Id")
 
@@ -414,14 +452,14 @@ def create_template_records(filtered_templates):
             if parameters:
                 for param in parameters:
                     new_template.append("parameters", {
-                        "parameter_value": param
+                        "field_name": param
                     })
 
             action_parameters = template.get("ActionParameters", [])
             if action_parameters:
                 for action_param in action_parameters:
                     new_template.append("action_parameter", {
-                        "action_parameter_value": action_param
+                        "field_name": action_param
                     })
 
             new_template.save(ignore_permissions=True)
@@ -444,12 +482,13 @@ def create_template_records(filtered_templates):
 
         # Prepare result message
         result_message = f"Imported {created_count} templates, skipped {skipped_count}"
+
         if error_templates:
             result_message += f", errors in {len(error_templates)} templates"
         return [True, result_message]
 
     except Exception as e:
-        frappe.log_error(f"Critical Error: {str(e)}", "Verloop Template Import")
+        # frappe.log_error(f"Critical Error: {str(e)}", "Verloop Template Import")
         return [False, f"Processing failed: {str(e)}"]
     
 
@@ -493,17 +532,42 @@ def update_verloop_template(template_id):
 
         data = response.read()
         response_data = json.loads(data.decode("utf-8"))
-        frappe.log_error("Campaign Update Response: ", response_data)
 
         template_data = response_data.get("Template", {})
+
+        template_exists = frappe.db.exists("Verloop Templates", template_id)
+
+        if template_exists:
+            doc = frappe.get_doc('Verloop Templates', template_id)
+        else:
+            doc = frappe.new_doc("Verloop Templates")
+            doc.template_id = template_id
         
-        doc = frappe.get_doc('Verloop Templates', template_id)
-        
-        doc.template_id = template_id
         doc.template_name = template_data.get('Name', '')
-        doc.block_type = template_data.get('Block', {}).get('blockType', '')
-        
+
+        if 'Block' in template_data and 'BlockType' in template_data['Block']:
+            block_type_data = template_data['Block']['BlockType']
+            if 'MessageBlock' in block_type_data:
+                doc.block_type = 'MessageBlock'
+
+                if 'LeadingMessage' in block_type_data['MessageBlock']:
+                    leading_msg = block_type_data['MessageBlock']['LeadingMessage']
+                    if 'MessageType' in leading_msg and 'TextMessage' in leading_msg['MessageType']:
+                        doc.message_content = leading_msg['MessageType']['TextMessage']
+
+        if 'TemplateType' in template_data:
+            template_type_data = template_data['TemplateType']
+            if 'WhatsAppTemplate' in template_type_data:
+                whatsapp_data = template_type_data['WhatsAppTemplate']
+                doc.whatsapp_template_id = whatsapp_data.get('TemplateID', '')
+                doc.language_code = whatsapp_data.get('LanguageCode', '')
+                doc.template_type = whatsapp_data.get('Type', 0)
+
         meta = template_data.get('Meta', {})
+
+        if meta.get("Id"):
+            doc.meta_id = meta.get("Id")
+
         if meta.get("CreatedAt"):
             doc.creation_time = frappe.utils.get_datetime(
                 datetime.datetime.fromtimestamp(meta.get("CreatedAt"))
@@ -519,14 +583,21 @@ def update_verloop_template(template_id):
         
         for param in template_data.get('Parameters', []):
             doc.append('parameters', {
-                'parameter_value': param
+                'field_name': param
             })
         
         for action_param in template_data.get('ActionParameters', []):
             doc.append('action_parameter', {
-                'action_parameter_value': action_param
+                'field_name': action_param
             })
-        doc.save(ignore_permissions=True)
+
+        if template_exists:
+            frappe.log_error(f"Updating existing template {template_id}", "Verloop Template Update")
+            doc.save(ignore_permissions=True)
+        else:
+            frappe.log_error(f"Inserting new template {template_id}", "Verloop Template Update")
+            doc.insert(ignore_permissions=True)
+
         frappe.db.commit()
         
         return [True, f"Template {template_id} updated successfully"]

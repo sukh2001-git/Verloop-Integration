@@ -22,7 +22,6 @@ frappe.listview_settings["Verloop Templates"] = {
                         });
                     }
 
-                    listview.refresh();
                 },
                 error: function() {
                     frappe.hide_progress("Verloop Templates Sync");

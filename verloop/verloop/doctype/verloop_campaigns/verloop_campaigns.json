@@ -31,8 +31,9 @@
   },
   {
    "fieldname": "status",
-   "fieldtype": "Int",
-   "label": "Status"
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nUNKNOWN\nDRAFT\nPUBLISHED\nDISABLED"
   },
   {
    "default": "1",
@@ -53,8 +54,9 @@
   },
   {
    "fieldname": "template_id",
-   "fieldtype": "Data",
-   "label": "Template ID"
+   "fieldtype": "Link",
+   "label": "Template ID",
+   "options": "Verloop Templates"
   },
   {
    "fieldname": "section_break_vixj",
@@ -73,7 +75,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 11:33:42.249880",
+ "modified": "2025-03-11 15:28:33.347012",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Campaigns",

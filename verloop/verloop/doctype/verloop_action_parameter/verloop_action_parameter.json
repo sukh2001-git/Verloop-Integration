@@ -6,32 +6,25 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "action_parameter_value",
-  "action_parent",
-  "description"
+  "field_name",
+  "field_value"
  ],
  "fields": [
   {
-   "fieldname": "description",
-   "fieldtype": "Small Text",
-   "label": "Description"
-  },
-  {
-   "fieldname": "action_parent",
-   "fieldtype": "Link",
-   "label": "Action Parent",
-   "options": "Verloop Templates"
-  },
-  {
-   "fieldname": "action_parameter_value",
+   "fieldname": "field_name",
    "fieldtype": "Int",
-   "label": "Action Parameter Value"
+   "label": "Field Name"
+  },
+  {
+   "fieldname": "field_value",
+   "fieldtype": "Data",
+   "label": "Field Value"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-05 14:39:23.185149",
+ "modified": "2025-03-11 15:25:17.911916",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Action Parameter",
