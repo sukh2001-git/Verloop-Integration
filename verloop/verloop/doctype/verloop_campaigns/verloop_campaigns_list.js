@@ -24,7 +24,6 @@ frappe.listview_settings["Verloop Campaigns"] = {
                         });
                     }
 
-                    listview.refresh();
                 },
                 error: function() {
                     frappe.msgprint({

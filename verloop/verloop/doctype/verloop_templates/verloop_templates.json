@@ -11,7 +11,6 @@
   "language_code",
   "message_content",
   "column_break_vskb",
-  "whatsapp_template_id",
   "creation_time",
   "updation_time",
   "block_type",
@@ -48,11 +47,6 @@
   {
    "fieldname": "column_break_vskb",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "whatsapp_template_id",
-   "fieldtype": "Data",
-   "label": "Whatsapp Template ID"
   },
   {
    "fieldname": "creation_time",
@@ -94,7 +88,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 18:53:59.200957",
+ "modified": "2025-03-11 17:12:26.638720",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Templates",
