@@ -83,7 +83,6 @@ def get_verloop_campaigns():
 
             if total_count is None:
                 total_count = response_data.get("Count", 0)
-                frappe.log_error(f"Total Campaigns to Sync: {total_count}", "Verloop Campaign Sync")
 
             if not response_data.get("Campaigns"):
                 break
@@ -191,7 +190,6 @@ def create_campaign_records(filtered_campaigns):
                         datetime.datetime.fromtimestamp(created_at)
                     )
                 except Exception as e:
-                    frappe.log_error(f"Creation time error: {str(e)}", "Verloop Campaign Import")
                     pass
             
             if updated_at:
@@ -200,20 +198,17 @@ def create_campaign_records(filtered_campaigns):
                         datetime.datetime.fromtimestamp(updated_at)
                     )
                 except Exception as e:
-                    frappe.log_error(f"Updation time error: {str(e)}", "Verloop Campaign Import")
                     pass
                 
             new_campaign.save(ignore_permissions=True)
             created_count += 1
 
-        frappe.log_error("Before inserting:", campaign.as_dict())
         frappe.db.commit()  
 
         # Prepare result message
         result_message = f"Imported {created_count} campaigns, skipped {skipped_count}"
         if error_campaigns:
             result_message += f", errors in {len(error_campaigns)} campaigns"
-            frappe.log_error(f"Import Errors: {json.dumps(error_campaigns)}", "Verloop Campaign Import")
 
         return [True, result_message]
 
@@ -304,7 +299,7 @@ def update_verloop_campaign(campaign_id):
         return [True, f"Campaign {campaign_id} updated successfully"]
             
     except Exception as e:
-        # frappe.log_error(f"Verloop Campaign Update Error: {str(e)}", "Verloop Campaign Update")
+        frappe.log_error(f"Verloop Campaign Update Error: {str(e)}", "Verloop Campaign Update")
         return [False, f"Error updating Verloop campaign: {str(e)}"]
     
 
@@ -375,10 +370,8 @@ def fetch_all_verloop_templates():
 
             data = response.read()
             response_data = json.loads(data.decode("utf-8"))
-            frappe.log_error(f"response data", response_data)
 
             result = create_template_records(response_data.get("Templates", []))
-            frappe.log_error((result), "result")
             
             # Update tracking
             if result[0]: 
@@ -488,7 +481,7 @@ def create_template_records(filtered_templates):
         return [True, result_message]
 
     except Exception as e:
-        # frappe.log_error(f"Critical Error: {str(e)}", "Verloop Template Import")
+        frappe.log_error(f"Critical Error: {str(e)}", "Verloop Template Import")
         return [False, f"Processing failed: {str(e)}"]
     
 
@@ -592,10 +585,8 @@ def update_verloop_template(template_id):
             })
 
         if template_exists:
-            frappe.log_error(f"Updating existing template {template_id}", "Verloop Template Update")
             doc.save(ignore_permissions=True)
         else:
-            frappe.log_error(f"Inserting new template {template_id}", "Verloop Template Update")
             doc.insert(ignore_permissions=True)
 
         frappe.db.commit()
