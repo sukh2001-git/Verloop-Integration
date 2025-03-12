@@ -11,11 +11,14 @@
   "section_break_gnvx",
   "campaign_id",
   "campaign_name",
-  "template_id",
   "status",
+  "column_break_dnyz",
+  "template_id",
+  "template_name",
   "campaign_type",
-  "creation_time",
-  "updation_time"
+  "column_break_irnm",
+  "updation_time",
+  "creation_time"
  ],
  "fields": [
   {
@@ -26,7 +29,7 @@
   },
   {
    "fieldname": "campaign_name",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Campaign Name"
   },
   {
@@ -71,11 +74,25 @@
   {
    "fieldname": "section_break_gnvx",
    "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "template_id.template_name",
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "label": "Template Name"
+  },
+  {
+   "fieldname": "column_break_dnyz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_irnm",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-11 15:28:33.347012",
+ "modified": "2025-03-12 10:55:46.711350",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Campaigns",
