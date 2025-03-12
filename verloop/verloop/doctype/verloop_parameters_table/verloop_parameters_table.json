@@ -18,19 +18,21 @@
   {
    "fieldname": "parent_parameter",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Parent parameter",
    "options": "Verloop Templates"
   },
   {
    "fieldname": "parameter_value",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Parameter Value"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-05 14:37:21.909577",
+ "modified": "2025-03-06 13:55:41.940802",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Parameters Table",

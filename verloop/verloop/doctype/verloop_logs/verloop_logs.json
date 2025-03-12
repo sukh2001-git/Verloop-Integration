@@ -1,14 +1,28 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2025-03-03 14:08:31.854164",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "references_section",
+  "naming_series",
+  "campaign_id",
+  "campaign_name",
+  "column_break_yfgi",
+  "template_id",
+  "template_name",
+  "to",
+  "status",
+  "message",
+  "section_break_voqe",
+  "parameters",
+  "actionparameters",
+  "section_break_nuvo",
   "reference_dt",
   "reference_name",
-  "column_break_rnqj",
+  "column_break_ckhp",
   "message_id_request",
   "failure_reason"
  ],
@@ -31,10 +45,6 @@
    "options": "reference_dt"
   },
   {
-   "fieldname": "column_break_rnqj",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "message_id_request",
    "fieldtype": "Small Text",
    "label": "Message ID Request"
@@ -43,14 +53,90 @@
    "fieldname": "failure_reason",
    "fieldtype": "Small Text",
    "label": "Failure Reason"
+  },
+  {
+   "fieldname": "campaign_name",
+   "fieldtype": "Small Text",
+   "label": "Campaign Name"
+  },
+  {
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "label": "Template Name"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nSent"
+  },
+  {
+   "fieldname": "section_break_voqe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "parameters",
+   "fieldtype": "Table",
+   "label": "Parameters",
+   "options": "Verloop Parameters Table"
+  },
+  {
+   "fieldname": "section_break_nuvo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_ckhp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_yfgi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Series",
+   "options": "VP-Logs-.YYYY.-",
+   "reqd": 1
+  },
+  {
+   "fieldname": "template_id",
+   "fieldtype": "Link",
+   "label": "Template ID",
+   "options": "Verloop Templates"
+  },
+  {
+   "fieldname": "campaign_id",
+   "fieldtype": "Link",
+   "label": "Campaign ID",
+   "options": "Verloop Campaigns"
+  },
+  {
+   "fieldname": "actionparameters",
+   "fieldtype": "Table",
+   "label": "ActionParameters",
+   "options": "Verloop Action Parameter"
+  },
+  {
+   "fieldname": "to",
+   "fieldtype": "Data",
+   "label": "To",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Text",
+   "label": "Message"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-06 10:35:20.005736",
+ "modified": "2025-03-11 15:18:44.123122",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Logs",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {

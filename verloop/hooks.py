@@ -131,9 +131,9 @@ app_include_js = "/assets/verloop/js/send_template.js"
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"Notification": "verloop.verloop.overrides.notification.SendNotification"
+}
 
 # Document Events
 # ---------------
@@ -147,6 +147,7 @@ app_include_js = "/assets/verloop/js/send_template.js"
 # 	}
 # }
 
+fixtures = ["Property Setter"]
 # Scheduled Tasks
 # ---------------
 
