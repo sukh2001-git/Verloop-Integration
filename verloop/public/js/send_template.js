@@ -207,9 +207,8 @@ verloop.ui.components.TemplateSender = class TemplateSender {
   }
 
   getPhoneNumbers(frm) {
-    let phoneFields = [
-      "mobile_no", "phone", "phone_no", "contact", "mobile", "whatsapp"
-    ];
+    let phoneFields = []
+    cur_frm.meta.fields.forEach((e) => { if (e.options == "Phone") { phoneFields.push(e.fieldname) } })
     let numbers = [];
     
     phoneFields.forEach((field) => {
@@ -238,10 +237,10 @@ verloop.ui.components.TemplateSender = class TemplateSender {
     let populatedFields = this.getPopulatedFields(frm);
     
     paramList.forEach((param, index) => {
-      console.log(param, index)
+      
       let labelName = prefix === "param_" ? `Parameter ${index + 1}` : `Action Parameter ${index + 1}`;
       let paramName = param.field_name || `${index + 1}`;
-      console.log(paramName)
+      
       let fieldName = `${prefix}${paramName}`;
       
       if (!dialog.fields_dict[fieldName]) {
@@ -309,8 +308,18 @@ frappe.ui.setup_template_sender = function (frm, opts = {}) {
   return template_sender;
 };
 
-frappe.ui.form.on("Lead", {
-  refresh(frm) {
-    frappe.ui.setup_template_sender(frm);
-  },
+$(document).ready(function (){
+	frappe.ui.form.Controller = Class.extend({
+		init: function(opts) {
+			$.extend(this, opts);
+			let ignored_doctype_list = ["DocType", "Customize Form"]
+			frappe.ui.form.on(this.frm.doctype, {
+				refresh(frm) {
+					if(!ignored_doctype_list.includes(frm.doc.doctype)){
+						frappe.ui.setup_template_sender(frm);
+					}
+				}
+			});
+		}
+	});
 });
