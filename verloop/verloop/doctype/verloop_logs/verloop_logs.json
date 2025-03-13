@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "references_section",
+  "column_break_iqxy",
   "naming_series",
   "campaign_id",
   "campaign_name",
@@ -58,33 +59,39 @@
    "fetch_from": "campaign_id.campaign_name",
    "fieldname": "campaign_name",
    "fieldtype": "Small Text",
-   "label": "Campaign Name"
+   "label": "Campaign Name",
+   "read_only": 1
   },
   {
    "fetch_from": "template_id.template_name",
    "fieldname": "template_name",
    "fieldtype": "Data",
-   "label": "Template Name"
+   "label": "Template Name",
+   "read_only": 1
   },
   {
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "\nSent"
+   "options": "\nSent",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_voqe",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "read_only": 1
   },
   {
    "fieldname": "parameters",
    "fieldtype": "Table",
    "label": "Parameters",
-   "options": "Verloop Parameters Table"
+   "options": "Verloop Parameters Table",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_nuvo",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_ckhp",
@@ -92,7 +99,8 @@
   },
   {
    "fieldname": "column_break_yfgi",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "read_only": 1
   },
   {
    "fieldname": "naming_series",
@@ -107,35 +115,46 @@
    "fieldname": "template_id",
    "fieldtype": "Link",
    "label": "Template ID",
-   "options": "Verloop Templates"
+   "options": "Verloop Templates",
+   "read_only": 1
   },
   {
    "fieldname": "campaign_id",
    "fieldtype": "Link",
    "label": "Campaign ID",
-   "options": "Verloop Campaigns"
+   "options": "Verloop Campaigns",
+   "read_only": 1
   },
   {
    "fieldname": "actionparameters",
    "fieldtype": "Table",
    "label": "ActionParameters",
-   "options": "Verloop Action Parameter"
+   "options": "Verloop Action Parameter",
+   "read_only": 1
   },
   {
    "fieldname": "to",
    "fieldtype": "Data",
    "label": "To",
-   "options": "Phone"
+   "options": "Phone",
+   "read_only": 1
   },
   {
    "fieldname": "message",
    "fieldtype": "Text",
-   "label": "Message"
+   "label": "Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_iqxy",
+   "fieldtype": "Column Break",
+   "read_only": 1
   }
  ],
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-13 14:19:32.974894",
+ "modified": "2025-03-13 18:47:28.215886",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Logs",
@@ -153,6 +172,29 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Verloop Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Verloop User",
+   "select": 1,
+   "share": 1
   }
  ],
  "sort_field": "modified",
