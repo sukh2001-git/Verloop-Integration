@@ -31,33 +31,36 @@ def validate_whatsapp_number(whatsapp_number):
 
 
 @frappe.whitelist()
-def send_verloop_msg(doctype, docname, args, template_parameter = None, action_parameter = None):
-	
-	if args and isinstance(args, str):
-		args = json.loads(args)
-	#Setting argumnents is exist
-	
-	message = args['message'] if 'message' in args else "No message Found"
-	campaign_id = args['verloop_campaign_id']
-	#Setting recipients list
-	recipients = (args['recipients']).replace(" ", "")
-	last_char = recipients[-1]
-	if last_char == ',':
-		receiver_list = recipients[0: -1].split(',')
-	else:
-		receiver_list = recipients
-	
-	template_in_json = json.loads(template_parameter)
-	actionparameter = json.loads(action_parameter)
- 
-	# template = frappe.get_doc("Verloops Templates", template)
+def send_verloop_msg(doctype, docname, args, template_parameter=None, action_parameter=None):
+    if args and isinstance(args, str):
+        args = json.loads(args)
 
-	VerloopLogs.send_whatsapp_message(
-		receiver_list = receiver_list,
-		message = message,
-		campaign_id = campaign_id,
-		doctype = doctype,
-		docname = docname,
-		template_parameter = template_in_json,
-		actionparameter = actionparameter
-	)
+    # Setting arguments if they exist
+    message = args['message'] if 'message' in args else "No message Found"
+    campaign_id = args['verloop_campaign_id']
+
+    # Setting recipients list
+    recipients = args['recipients'].replace(" ", "")
+    last_char = recipients[-1]
+    if last_char == ',':
+        receiver_list = recipients[0: -1].split(',')
+    else:
+        receiver_list = recipients
+
+    # Parsing template and action parameters
+    template_in_json = json.loads(template_parameter)
+    actionparameter = json.loads(action_parameter)
+
+    # Log the actionparameter
+    frappe.log_error("actionparameter", actionparameter)
+
+    # Send the message using VerloopLogs
+    VerloopLogs.send_whatsapp_message(
+        receiver_list=receiver_list,
+        message=message,
+        campaign_id=campaign_id,
+        doctype=doctype,
+        docname=docname,
+        template_parameter=template_in_json,
+        templateActionParameter=actionparameter
+    )

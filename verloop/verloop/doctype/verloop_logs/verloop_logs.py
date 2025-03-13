@@ -13,37 +13,50 @@ from frappe.model.document import Document
 
 
 # Process template while saving them in Verloops Logs.
-def process_template_parameter(template = None, template_parameter = None):
-	if isinstance(template_parameter, str):
-		template_parameter = json.loads(template_parameter)
-	elif isinstance(template_parameter, dict):
-		template_parameter = template_parameter
-	items = []
-	if template:
-		template_doc = frappe.get_doc("Verloop Templates", template)
-		for row in template_doc.parameter:
-			temp = {}
-			temp["field_name"] = row.get("field_name")
-			temp["field_value"] = row.get("field_value")
-			items.append(temp)
-	return items
+def process_template_parameter(campaign_id=None, template_parameter=None):
+    frappe.log_error("temp", template_parameter)
+    if isinstance(template_parameter, str):
+        template_parameter = template_parameter.replace("'", '"')
+        template_parameter = json.loads(template_parameter)
+    elif isinstance(template_parameter, dict):
+        template_parameter = template_parameter
+        
+    frappe.log_error("template_parameter", campaign_id)
+    items = []
+
+    if campaign_id:
+        campaign_doc = frappe.get_doc("Verloop Campaigns", campaign_id)
+        template_doc = frappe.get_doc("Verloop Templates", campaign_doc.template_id)
+
+        for row in template_doc.parameters:
+            temp = {}
+            temp["field_name"] = row.get('field_name')
+            temp["field_value"] = template_parameter.get(row.get('field_name'))
+            items.append(temp)
+
+    return items
 
 # Process template while saving them in Verloops Logs.
-def process_template_actionParameter(template = None, template_actionParameter = None):
-	if isinstance(template_parameter, str):
-		template_parameter = json.loads(template_parameter)
-	elif isinstance(template_parameter, dict):
-		template_parameter = template_parameter
-	items = []
-	if template:
-		template_doc = frappe.get_doc("Verloop Templates", template)
-		for row in template_doc.actionparameters:
-			temp = {}
-			temp["field_name"] = row.get("field_name")
-			temp["field_value"] = row.get("field_value")
-			items.append(temp)
-	return items
+def processTemplateActionParameter(campaign_id=None, templateActionParameter=None):
+    if isinstance(templateActionParameter, str):
+        templateActionParameter = templateActionParameter.replace("'", '"')
+        templateActionParameter = json.loads(templateActionParameter)
+    elif isinstance(templateActionParameter, dict):
+        templateActionParameter = templateActionParameter
+        
+    items = []
 
+    if campaign_id:
+        campaign_doc = frappe.get_doc("Verloop Campaigns", campaign_id)
+        template_doc = frappe.get_doc("Verloop Templates", campaign_doc.template_id)
+
+        for row in template_doc.action_parameter:
+            temp = {}
+            temp["field_name"] = row.get('field_name')
+            temp["field_value"] = templateActionParameter.get(f"{row.get('field_name')}")
+            items.append(temp)
+
+    return items
     
 
 class VerloopLogs(Document):
@@ -72,7 +85,7 @@ class VerloopLogs(Document):
 		return None
 	
 	# To prepare the payload:--
-	def responseData():
+	def responseData(self):
 		parameter = {}
 		actionparameter = {}
 		for value in self.parameters:
@@ -82,16 +95,16 @@ class VerloopLogs(Document):
 			actionparameter[value.get('field_name')] = value.get('field_value')
    
 		response_data = {
-			"CampaignID": CampaignID,
+			"CampaignID": self.campaign_id,
 			"To": {
-				"PhoneNumber": PhoneNumber,
+				"PhoneNumber": self.to,
 			},
 			"Variables": {
 				"customer_id": "my_customer_id",
 				"customer_type": "vip",
 			},
 			"Callback": {
-				"URL": "https://stagenerivio.onehash.ltd",
+				"URL": "https://stagenerivio.onehash.ltd/api/method/test-msg91",
 				"State": {
 					"a":"b",
 					"c":"d"
@@ -111,26 +124,28 @@ class VerloopLogs(Document):
 		if not self.to:
 			frappe.throw("Recepient (`to`) is required to send message.")
 		access_token = self.get_access_token()
-		base_path = frappe.db.get_single_value("Verloop Settings", "base_path")
 		client_id = frappe.db.get_single_value("Verloop Settings", "client_id")
 		try:
-			conn = http.client.HTTPSConnection(f"{base_path}.verloop.io")
-			payload = json.dumps(self.responseData())
+			conn = http.client.HTTPSConnection(f"{client_id}.verloop.io")
+			payload = self.responseData()
+			payload = json.dumps(payload)
+			frappe.log_error("payload", payload)
 			headers = {
 				'accept': 'application/json',
 				'Content-Type': 'application/json',
 				'Authorization': access_token
 			}
-			conn.request("POST", "/api/v2/outreach/SendMesage", payload, headers)
+			conn.request("POST", "/api/v2/outreach/send-message", payload, headers)
 			res = conn.getresponse()
 			data = res.read()
-			resData = data.decode("utf-8")
-			frappe.log_error("resData", resData)
+			resData = json.loads(data.decode("utf-8"))
+			self.message_id_request = resData.get("MessageID")
+			self.save(ignore_permissions = 1)
 		except Exception as e:
 			frappe.log_error("Failed to Send Verloop Campaign", str(e))
 	
 	@classmethod
-	def send_whatsapp_message(self, receiver_list, message, template, doctype, docname, template_parameter = None, template_actionParameter = None):
+	def send_whatsapp_message(self, receiver_list, message, campaign_id, doctype, docname, template_parameter = None, templateActionParameter = None):
 		if isinstance(receiver_list, string_types):
 			if not isinstance(receiver_list, list):
 				receiver_list = [receiver_list]
@@ -139,26 +154,26 @@ class VerloopLogs(Document):
 			"""
 			Iterate receiver_list and send message to each recepient
 			"""
+			frappe.log_error("actionverparameter", templateActionParameter)
 			to = self.validate_and_normalize_number(self, rec)
-			self.create_whatsapp_message(to, message, template, doctype, docname, template_parameter, template_actionParameter) #For Text Message or Caption for documents
-			if media and file_name:
-				self.create_whatsapp_message(to, message, template, doctype, docname, template_parameter, template_actionParameter) #For Document
+			self.create_whatsapp_message(to, message, campaign_id, doctype, docname, template_parameter, templateActionParameter) #For Text Message or Caption for documents
 
  
 	# Create WhatsApp Message 
-	def create_whatsapp_message(to, message, template=None, doctype=None, docname=None, template_parameter = None, template_actionParameter = None):
+	def create_whatsapp_message(to, message, campaign_id=None, doctype=None, docname=None, template_parameter = None, templateActionParameter = None):
 		"""
 		Create Verloop Logs with given data.
 		"""
-		parameters = process_template_parameter(template, template_parameter)
-		actionparameters = process_template_actionParameter(template, template_actionParameter)
+		parameters = process_template_parameter(campaign_id, template_parameter)
+		frappe.log_error("parameters", parameters)
+		actionparameters = processTemplateActionParameter(campaign_id, templateActionParameter)
+		frappe.log_error("actionparameters", actionparameters)
 		vp_logs = frappe.get_doc({
 			"doctype": "Verloop Logs",
 			"to": to,
 			"reference_dt": doctype,
-			"reference_name": reference_name,
+			"reference_name": docname,
 			"campaign_id": campaign_id,
-			"template_id": template_id,
 			"parameters": parameters,
 			"actionparameters": actionparameters,
 			"message" : message
@@ -169,13 +184,18 @@ class VerloopLogs(Document):
 @frappe.whitelist()
 def update_message_status(**args):
 	''' Method to updtae status of Message '''
-	frappe.log_error("status", args)
-	# message_id = args.get("request_id")
-	# status = args.get("status")
+	frappe.log_error("update_message_status", args)
+	message_id = args.get("MessageID")
+	status = args.get("Status")
 	# failure_reason = args.get("failure_reason")
 
-	# if frappe.db.exists('Verloop Logs', {"message_id": message_id}):
-	# 	frappe.db.set_value(
-	# 		"Verloop Logs", {"message_id": message_id}, "status", status.title()
-	# 	)
-	# 	frappe.db.commit()
+	if frappe.db.exists('Verloop Logs', {"message_id": message_id}):
+		frappe.db.set_value(
+			"Verloop Logs", {"message_id": message_id}, "status", status.title()
+		)
+		frappe.db.commit()
+  
+@frappe.whitelist()
+def capture_consent(**args):
+    '''Method to capture consent'''
+    frappe.log_error("capture_consent", args)

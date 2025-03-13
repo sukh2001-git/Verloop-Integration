@@ -89,11 +89,13 @@ verloop.ui.components.TemplateSender = class TemplateSender {
           args: {
             doctype: me.options.doctype,
             docname: me.options.docname,
-            to_user: values.mobile_no,
-            campaign: values.campaign,
-            campaign_name: values.campaign_name,
-            parameters: parameters,
-            action_parameters: action_parameters,
+            args: {
+              recipients: values.mobile_no,
+              verloop_campaign_id: values.campaign,
+              message: values.message_content || "No message Found",
+            },
+            template_parameter: parameters,
+            action_parameter: action_parameters,
           },
           callback: function (response) {
             frappe.msgprint(__("Template Sent Successfully"));
@@ -236,8 +238,10 @@ verloop.ui.components.TemplateSender = class TemplateSender {
     let populatedFields = this.getPopulatedFields(frm);
     
     paramList.forEach((param, index) => {
+      console.log(param, index)
       let labelName = prefix === "param_" ? `Parameter ${index + 1}` : `Action Parameter ${index + 1}`;
-      let paramName = param.parameter_name || param.name || `param_${index + 1}`;
+      let paramName = param.field_name || `${index + 1}`;
+      console.log(paramName)
       let fieldName = `${prefix}${paramName}`;
       
       if (!dialog.fields_dict[fieldName]) {
