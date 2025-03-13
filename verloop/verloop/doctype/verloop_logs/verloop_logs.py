@@ -85,7 +85,7 @@ class VerloopLogs(Document):
 		return None
 	
 	# To prepare the payload:--
-	def responseData(self):
+	def responseData(self, site_url):
 		parameter = {}
 		actionparameter = {}
 		for value in self.parameters:
@@ -102,15 +102,16 @@ class VerloopLogs(Document):
 			"Variables": {
 				"customer_id": "my_customer_id",
 				"customer_type": "vip",
-			},
-			"Callback": {
-				"URL": "https://stagenerivio.onehash.ltd/api/method/test-msg91",
+			}
+		}
+		if site_url:
+			response_data['Callback'] = {
+				"URL": f"{site_url}api/method/verloop.verloop.doctype.verloop_logs.verloop_logs.update_message_status",
 				"State": {
 					"a":"b",
 					"c":"d"
 				}
 			}
-		}
 		if actionparameter:
 			response_data['ActionParameters'] = actionparameter
 		if parameter:
@@ -125,9 +126,10 @@ class VerloopLogs(Document):
 			frappe.throw("Recepient (`to`) is required to send message.")
 		access_token = self.get_access_token()
 		client_id = frappe.db.get_single_value("Verloop Settings", "client_id")
+		site_url = frappe.db.get_single_value("Verloop Settings", "site_url")
 		try:
 			conn = http.client.HTTPSConnection(f"{client_id}.verloop.io")
-			payload = self.responseData()
+			payload = self.responseData(site_url)
 			payload = json.dumps(payload)
 			frappe.log_error("payload", payload)
 			headers = {
