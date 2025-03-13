@@ -6,6 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "column_break_wmgm",
   "template_id",
   "template_name",
   "language_code",
@@ -26,69 +27,87 @@
    "in_global_search": 1,
    "in_standard_filter": 1,
    "label": "Template ID",
+   "read_only": 1,
    "unique": 1
   },
   {
    "fieldname": "template_name",
    "fieldtype": "Data",
    "label": "Template Name",
+   "read_only": 1,
    "unique": 1
   },
   {
    "fieldname": "language_code",
    "fieldtype": "Data",
-   "label": "Language Code"
+   "label": "Language Code",
+   "read_only": 1
   },
   {
    "fieldname": "message_content",
    "fieldtype": "Small Text",
-   "label": "Message Content"
+   "label": "Message Content",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_vskb",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "read_only": 1
   },
   {
    "fieldname": "creation_time",
    "fieldtype": "Datetime",
-   "label": "Creation Time"
+   "label": "Creation Time",
+   "read_only": 1
   },
   {
    "fieldname": "updation_time",
    "fieldtype": "Datetime",
-   "label": "Updation Time"
+   "label": "Updation Time",
+   "read_only": 1
   },
   {
    "fieldname": "block_type",
    "fieldtype": "Data",
-   "label": "Block Type"
+   "label": "Block Type",
+   "read_only": 1
   },
   {
    "fieldname": "parameters_table_section",
    "fieldtype": "Section Break",
-   "label": "Parameters Table"
+   "label": "Parameters Table",
+   "read_only": 1
   },
   {
    "fieldname": "parameters",
    "fieldtype": "Table",
    "label": "Parameters",
-   "options": "Verloop Parameters Table"
+   "options": "Verloop Parameters Table",
+   "read_only": 1
   },
   {
    "fieldname": "action_parameter_table_section",
    "fieldtype": "Section Break",
-   "label": "Action Parameter Table"
+   "label": "Action Parameter Table",
+   "read_only": 1
   },
   {
    "fieldname": "action_parameter",
    "fieldtype": "Table",
    "label": "Action Parameter",
-   "options": "Verloop Action Parameter"
+   "options": "Verloop Action Parameter",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_wmgm",
+   "fieldtype": "Column Break",
+   "read_only": 1
   }
  ],
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-11 17:12:26.638720",
+ "modified": "2025-03-13 18:48:35.714486",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Templates",
@@ -106,9 +125,34 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Verloop Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Verloop User",
+   "select": 1,
+   "share": 1
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "template_name"
 }

@@ -25,41 +25,48 @@
    "fieldname": "campaign_id",
    "fieldtype": "Data",
    "label": "Campaign ID",
+   "read_only": 1,
    "unique": 1
   },
   {
    "fieldname": "campaign_name",
    "fieldtype": "Small Text",
-   "label": "Campaign Name"
+   "label": "Campaign Name",
+   "read_only": 1
   },
   {
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "\nUNKNOWN\nDRAFT\nPUBLISHED\nDISABLED"
+   "options": "\nUNKNOWN\nDRAFT\nPUBLISHED\nDISABLED",
+   "read_only": 1
   },
   {
    "default": "1",
    "fieldname": "campaign_type",
    "fieldtype": "Select",
    "label": "Campaign Type",
-   "options": "\n1"
+   "options": "\n1",
+   "read_only": 1
   },
   {
    "fieldname": "creation_time",
    "fieldtype": "Datetime",
-   "label": "Creation Time"
+   "label": "Creation Time",
+   "read_only": 1
   },
   {
    "fieldname": "updation_time",
    "fieldtype": "Datetime",
-   "label": "Updation Time"
+   "label": "Updation Time",
+   "read_only": 1
   },
   {
    "fieldname": "template_id",
    "fieldtype": "Link",
    "label": "Template ID",
-   "options": "Verloop Templates"
+   "options": "Verloop Templates",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_vixj",
@@ -73,13 +80,15 @@
   },
   {
    "fieldname": "section_break_gnvx",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "read_only": 1
   },
   {
    "fetch_from": "template_id.template_name",
    "fieldname": "template_name",
    "fieldtype": "Data",
-   "label": "Template Name"
+   "label": "Template Name",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_dnyz",
@@ -90,9 +99,10 @@
    "fieldtype": "Column Break"
   }
  ],
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-12 10:55:46.711350",
+ "modified": "2025-03-13 18:46:16.637430",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Campaigns",
@@ -110,9 +120,34 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Verloop Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Verloop User",
+   "select": 1,
+   "share": 1
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "campaign_name"
 }

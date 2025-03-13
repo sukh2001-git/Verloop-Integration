@@ -11,7 +11,8 @@
   "column_break_himj",
   "base_path",
   "campaign_limit",
-  "campaign_type"
+  "campaign_type",
+  "site_url"
  ],
  "fields": [
   {
@@ -49,12 +50,18 @@
    "fieldname": "campaign_type",
    "fieldtype": "Int",
    "label": "Campaign Type"
+  },
+  {
+   "fieldname": "site_url",
+   "fieldtype": "Data",
+   "label": "Site URL",
+   "options": "URL"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-04 10:16:03.439608",
+ "modified": "2025-03-13 18:30:44.481027",
  "modified_by": "Administrator",
  "module": "Verloop",
  "name": "Verloop Settings",
@@ -69,6 +76,25 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Verloop Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Verloop User",
+   "select": 1,
+   "share": 1
   }
  ],
  "sort_field": "modified",
